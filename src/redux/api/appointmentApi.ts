@@ -38,6 +38,7 @@ export const appointmentApi = baseApi.injectEndpoints({
       },
       transformResponse: (response: {
         data:any
+        meta:any
       }, meta: IMeta) => {
         return {
           appointments: response,

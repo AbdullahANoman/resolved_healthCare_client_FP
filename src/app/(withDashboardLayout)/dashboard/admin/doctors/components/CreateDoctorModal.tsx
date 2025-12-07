@@ -223,13 +223,13 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
   const handleFormSubmit = async (values: FormData) => {
     try {
       // Check if image is required but not uploaded
-      if (!values.file && activeStep >= 0) {
-        toast.error("Profile photo required", {
-          description: "Please upload a profile photo for the doctor.",
-        });
-        setActiveStep(0); // Go back to first step
-        return;
-      }
+      // if (!values.file && activeStep >= 0) {
+      //   toast.error("Profile photo required", {
+      //     description: "Please upload a profile photo for the doctor.",
+      //   });
+      //   setActiveStep(0); // Go back to first step
+      //   return;
+      // }
 
       // Merge with any unsaved form data
       const finalData = { ...formData, ...values };
@@ -240,21 +240,12 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
           experience: Number(finalData.doctor?.experience) || 0,
           appointmentFee: Number(finalData.doctor?.appointmentFee) || 0,
         },
-        password: finalData.password || "",
-        file: finalData.file || null,
+        password: finalData?.password || "",
+        file: finalData?.file || null,
       };
 
-      console.log(processedValues,'processed values')
-
       const data = modifyPayload(processedValues);
-
-
-      console.log(data,'modified data');
-
       const res = await createDoctor(data).unwrap();
-
-      console.log(res)
-
       if (res.status == 200) {
         toast.success("Doctor created successfully! 🎉", {
           description:
@@ -263,6 +254,7 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
         handleClose();
       }
     } catch (err: any) {
+      console.log(err)
       console.error("Creation error:", err);
       toast.error("Failed to create doctor", {
         description:
@@ -325,7 +317,7 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
           {step === 0 && (
             <div className="space-y-6">
               {/* Profile Photo Upload */}
-              <div className="text-center">
+              {/* <div className="text-center">
                 <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
                     <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
@@ -406,7 +398,7 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
                     )}
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Personal Information Form */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -997,7 +989,8 @@ const CreateDoctorModal = ({ open, setOpen }: TProps) => {
               ) : (
                 <Button
                   type="submit"
-                  disabled={isLoading || !imagePreview}
+                  // disabled={isLoading || !imagePreview}
+                  disabled={isLoading}
                   className="gap-2 min-w-[140px] bg-green-600 hover:bg-green-700"
                 >
                   {isLoading ? (

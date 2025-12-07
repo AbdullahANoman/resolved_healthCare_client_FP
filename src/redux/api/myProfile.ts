@@ -18,7 +18,7 @@ export const profileAPi = baseApi.injectEndpoints({
                url: '/user/update-my-profile',
                method: 'PATCH',
                data,
-               contentType: 'multipart/form-data',
+               // contentType: 'multipart/form-data',
             };
          },
          invalidatesTags: [tagTypes.user],

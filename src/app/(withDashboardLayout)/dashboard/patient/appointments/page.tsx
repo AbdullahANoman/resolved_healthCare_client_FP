@@ -1,37 +1,55 @@
 "use client";
 
-
 import { useGetMyAppointmentsQuery } from "@/redux/api/appointmentApi";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { Video, Calendar, MapPin, DollarSign, Clock } from "lucide-react";
 import { DataTable } from "@/components/Shared/DataTable/DataTable";
 import { TableSkeleton } from "@/components/Shared/DataTable/TableSkeleton";
 
 const PatientAppointmentsTable = () => {
-  const { data, isLoading } = useGetMyAppointmentsQuery({});
-  
-  const appointmentData =  data?.appointments?.data || [];
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const buildQueryParams = () => {
+    const params: any = {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+    };
+
+    return params;
+  };
+  const { data, isLoading } = useGetMyAppointmentsQuery(buildQueryParams());
+
+  const appointmentData = data?.appointments?.data || [];
+  const meta = data?.appointments?.meta;
+
+
 
   // Format date utility
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   // Format time utility
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const handlePaginationChange = (newPagination: any) => {
+    setPagination(newPagination);
   };
 
   // Calculate days until appointment
@@ -47,7 +65,8 @@ const PatientAppointmentsTable = () => {
   const canJoinAppointment = (appointment: any) => {
     const isPaid = appointment.paymentStatus === "PAID";
     const isScheduled = appointment.status === "SCHEDULED";
-    const isUpcoming = new Date(appointment.schedule.startDateTime) > new Date();
+    const isUpcoming =
+      new Date(appointment.schedule.startDateTime) > new Date();
     return isPaid && isScheduled && isUpcoming;
   };
 
@@ -57,14 +76,9 @@ const PatientAppointmentsTable = () => {
       header: "Appointment ID",
       cell: ({ row }) => {
         return (
-          // <Link
-          //   href={`/patient/appointments/${row.getValue("id")}`}
-          //   passHref
-          // >
-            <button className="px-3 py-1 text-blue-600 hover:text-blue-800 bg-white hover:bg-gray-100 rounded-md border border-gray-300 transition-colors duration-200 text-xs font-medium">
-              {row.original.id.slice(0, 8)}...
-            </button>
-          // </Link>
+          <button className="px-3 py-1 text-blue-600 hover:text-blue-800 bg-white hover:bg-gray-100 rounded-md border border-gray-300 transition-colors duration-200 text-xs font-medium">
+            {row.original.id.slice(0, 8)}...
+          </button>
         );
       },
       meta: {
@@ -212,7 +226,11 @@ const PatientAppointmentsTable = () => {
 
         return (
           <Link
-            href={canJoin ? `/video?videoCallingId=${appointment.videoCallingId}` : "#"}
+            href={
+              canJoin
+                ? `/video?videoCallingId=${appointment.videoCallingId}`
+                : "#"
+            }
             passHref
           >
             <button
@@ -236,7 +254,7 @@ const PatientAppointmentsTable = () => {
     },
   ];
 
-  if (isLoading) return <TableSkeleton/>;
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div>
@@ -267,7 +285,9 @@ const PatientAppointmentsTable = () => {
           },
         ]}
         rowTooltipContent={(rowData) => {
-          const daysRemaining = calculateDaysUntilAppointment(rowData.schedule.startDateTime);
+          const daysRemaining = calculateDaysUntilAppointment(
+            rowData.schedule.startDateTime
+          );
           const canJoin = canJoinAppointment(rowData);
 
           return (
@@ -277,35 +297,44 @@ const PatientAppointmentsTable = () => {
                 {daysRemaining >= 0 && (
                   <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
                     {daysRemaining > 0
-                      ? `In ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}`
+                      ? `In ${daysRemaining} day${
+                          daysRemaining !== 1 ? "s" : ""
+                        }`
                       : "Today"}
                   </span>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-xs ">Doctor:</span>
-                  <span className="text-xs font-medium">{rowData.doctor.name}</span>
+                  <span className="text-xs font-medium">
+                    {rowData.doctor.name}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Time:</span>
                   <span className="text-xs font-medium">
-                    {formatTime(rowData.schedule.startDateTime)} - {formatTime(rowData.schedule.endDateTime)}
+                    {formatTime(rowData.schedule.startDateTime)} -{" "}
+                    {formatTime(rowData.schedule.endDateTime)}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Fee:</span>
-                  <span className="text-xs font-medium">৳{rowData.doctor.appointmentFee}</span>
+                  <span className="text-xs font-medium">
+                    ৳{rowData.doctor.appointmentFee}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Can Join:</span>
-                  <span className={`text-xs font-medium ${
-                    canJoin ? "text-green-600" : "text-red-600"
-                  }`}>
+                  <span
+                    className={`text-xs font-medium ${
+                      canJoin ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {canJoin ? "Yes" : "No"}
                   </span>
                 </div>
@@ -313,10 +342,11 @@ const PatientAppointmentsTable = () => {
             </div>
           );
         }}
-      >
-        {/* You can add additional buttons here like in your flight booking table */}
-        {/* <CreateAppointmentButton /> */}
-      </DataTable>
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
+        pageCount={meta ? Math.ceil(meta.total / meta.limit) : 1}
+        totalItems={meta?.total || 0}
+      ></DataTable>
     </div>
   );
 };

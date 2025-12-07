@@ -30,6 +30,7 @@ import { useTheme } from "next-themes";
 import Sidebar from "../SideBar/SideBar";
 import { logoutUser } from "@/services/actions/logoutUser";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function DashboardDrawer({
   children,
@@ -37,9 +38,12 @@ export default function DashboardDrawer({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const { theme, setTheme } = useTheme();
   const { data, isLoading } = useGetSingleUserQuery({});
+  console.log(data, "from top navigation");
   const router = useRouter();
+
+  const role = data?.role;
+  const userRole = role?.toLowerCase();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -97,7 +101,7 @@ export default function DashboardDrawer({
                 transition={{ duration: 0.5 }}
               >
                 <div>
-                  <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-1">
+                  <h1 className="text-md font-bold text-slate-900 dark:text-white mb-1">
                     {getCurrentTime()}, {isLoading ? "..." : data?.name}! 👋
                   </h1>
                   <div className="flex items-center gap-2">
@@ -117,36 +121,6 @@ export default function DashboardDrawer({
 
             {/* Right Section */}
             <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-10 w-40 lg:w-64 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                />
-              </div>
-
-              {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
-
-              {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                  3
-                </span>
-              </Button>
-
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -155,10 +129,7 @@ export default function DashboardDrawer({
                     className="relative h-10 w-10 rounded-full"
                   >
                     <Avatar className="h-10 w-10 border-2 border-white dark:border-slate-800 shadow-sm">
-                      <AvatarImage
-                        src={data?.profilePhoto}
-                        alt={data?.name}
-                      />
+                      <AvatarImage src={data?.profilePhoto} alt={data?.name} />
                       <AvatarFallback className="bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
                         {data?.name?.charAt(0) || "U"}
                       </AvatarFallback>
@@ -175,16 +146,23 @@ export default function DashboardDrawer({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
+                  <Link href={`/dashboard/${userRole}/profile`}>
+                    <div className="cursor-pointer">
+                      <DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                    </div>
+                  </Link>
                   <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogOut} className="text-red-600 dark:text-red-400 cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleLogOut}
+                    className="text-red-600 dark:text-red-400 cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>

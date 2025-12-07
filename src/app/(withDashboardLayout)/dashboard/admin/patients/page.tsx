@@ -357,20 +357,7 @@ const PatientsPage = () => {
           );
         }}
       >
-        {/* Additional children can be added here */}
       </DataTable>
-
-      {/* Add Patient Modal - You'll need to create this */}
-      {/* <PatientModal open={isModalOpen} setOpen={setIsModalOpen} /> */}
-      {/*       
-      {selectedPatientId && (
-        <PatientUpdateModal
-          open={updateModalOpen}
-          setOpen={setUpdateModalOpen}
-          patientId={selectedPatientId}
-        />
-      )} */}
-
       <SimpleDeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}

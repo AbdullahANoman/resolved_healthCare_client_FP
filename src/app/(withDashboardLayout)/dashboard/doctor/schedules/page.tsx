@@ -15,37 +15,99 @@ import {
   Video,
   CheckCircle,
   Clock4,
+  Filter,
+  DollarSign,
+  Check,
+  X,
 } from "lucide-react";
 import { TableSkeleton } from "@/components/Shared/DataTable/TableSkeleton";
 import { useGetMyScheduleQuery } from "@/redux/api/doctorScheduleApi";
 import CreateScheduleModal from "./components/CreateScheduleModal";
+import { IMeta } from "@/types/common";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface ScheduleResponse {
+  data: any[];
+  meta: any;
+}
+
+
+interface Schedule {
+  id: string;
+  doctorId: string;
+  scheduleId: string;
+  isBooked: boolean;
+  appointmentId: string | null;
+  schedule: {
+    id: string;
+    startDateTime: string;
+    endDateTime: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  appointment?: {
+    id: string;
+    status: string;
+    paymentStatus: string;
+    videoCallingId?: string;
+  };
+}
+
+interface DoctorScheduleResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: Schedule[];
+    meta: IMeta;
+  };
+}
 
 const DoctorSchedulePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-
-  const debouncedTerm = useDebounced({
-    searchQuery: searchTerm,
-    delay: 600,
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [isBookedFilter, setIsBookedFilter] = useState<string>("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("all");
+  const [appointmentStatusFilter, setAppointmentStatusFilter] =
+    useState<string>("all");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
   });
 
-  // Remove pagination from query since we'll use client-side pagination
-  const query: Record<string, any> = {};
+  // Build query parameters
+  const buildQueryParams = () => {
+    const params: any = {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+    };
 
-  if (!!debouncedTerm) {
-    query["searchTerm"] = searchTerm;
-  }
+    if (isBookedFilter && isBookedFilter !== "all") {
+      params["isBooked"] = isBookedFilter;
+    }
 
-  const { data, isLoading, error, refetch } = useGetMyScheduleQuery({
-    ...query,
-  });
-  
-  const scheduleData = data?.data || [];
-  const meta = data?.meta;
+    return params;
+  };
 
-  console.log(scheduleData);
-  console.log(meta)
+const { data: scheduleDatas, isLoading, error, refetch } = useGetMyScheduleQuery(
+  buildQueryParams()
+) as {
+  data: ScheduleResponse | undefined;
+  isLoading: boolean;
+  error: any;
+  refetch: () => void;
+};
 
-  // Format date and time
+const scheduleData = scheduleDatas?.data || [];
+const meta = scheduleDatas?.meta;
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
@@ -53,6 +115,10 @@ const DoctorSchedulePage = () => {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handlePaginationChange = (newPagination: any) => {
+    setPagination(newPagination);
   };
 
   const formatTime = (dateString: string) => {
@@ -67,7 +133,27 @@ const DoctorSchedulePage = () => {
     return `${formatTime(start)} - ${formatTime(end)}`;
   };
 
-  const columns: ColumnDef<any>[] = [
+  // Filter options - Use non-empty string values
+  const bookingStatusOptions = [
+    { value: "all", label: "All Booking Status" },
+    { value: "true", label: "Booked" },
+    { value: "false", label: "Available" },
+  ];
+
+  const paymentStatusOptions = [
+    { value: "all", label: "All Payment Status" },
+    { value: "PAID", label: "Paid" },
+    { value: "UNPAID", label: "Unpaid" },
+  ];
+
+  const appointmentStatusOptions = [
+    { value: "all", label: "All Appointment Status" },
+    { value: "SCHEDULED", label: "Scheduled" },
+    { value: "COMPLETED", label: "Completed" },
+    { value: "CANCELLED", label: "Cancelled" },
+  ];
+
+  const columns: ColumnDef<Schedule>[] = [
     {
       accessorKey: "schedule.startDateTime",
       header: "Date & Time",
@@ -105,14 +191,16 @@ const DoctorSchedulePage = () => {
         return (
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">{duration} min</span>
+            <span className="text-sm text-gray-700">
+              {Math.round(duration)} min
+            </span>
           </div>
         );
       },
     },
     {
       accessorKey: "isBooked",
-      header: "Status",
+      header: "Booking Status",
       cell: ({ row }) => {
         const isBooked = row.getValue("isBooked") as boolean;
         const appointment = row.original.appointment;
@@ -145,8 +233,69 @@ const DoctorSchedulePage = () => {
       },
     },
     {
+      accessorKey: "appointment.paymentStatus",
+      header: "Payment Status",
+      cell: ({ row }) => {
+        const appointment = row.original.appointment;
+        const isBooked = row.original.isBooked;
+
+        if (!isBooked || !appointment) {
+          return <span className="text-sm text-gray-400 italic">N/A</span>;
+        }
+
+        return (
+          <Badge
+            variant="outline"
+            className={`
+              text-xs
+              ${
+                appointment.paymentStatus === "PAID"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-yellow-50 text-yellow-700 border-yellow-200"
+              }
+            `}
+          >
+            <div className="flex items-center space-x-1">
+              <DollarSign className="h-3 w-3" />
+              <span>{appointment.paymentStatus}</span>
+            </div>
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "appointment.status",
+      header: "Appointment Status",
+      cell: ({ row }) => {
+        const appointment = row.original.appointment;
+        const isBooked = row.original.isBooked;
+
+        if (!isBooked || !appointment) {
+          return <span className="text-sm text-gray-400 italic">N/A</span>;
+        }
+
+        return (
+          <Badge
+            variant="outline"
+            className={`
+              text-xs
+              ${
+                appointment.status === "COMPLETED"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : appointment.status === "CANCELLED"
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
+              }
+            `}
+          >
+            {appointment.status}
+          </Badge>
+        );
+      },
+    },
+    {
       accessorKey: "appointment",
-      header: "Appointment Details",
+      header: "Details",
       cell: ({ row }) => {
         const appointment = row.original.appointment;
         const isBooked = row.original.isBooked;
@@ -249,15 +398,24 @@ const DoctorSchedulePage = () => {
     },
   ];
 
-  // Stats calculation
-  const stats = {
-    total: scheduleData.length,
-    booked: scheduleData.filter((s: any) => s.isBooked).length,
-    available: scheduleData.filter((s: any) => !s.isBooked).length,
-    completed: scheduleData.filter(
-      (s: any) => s.appointment?.status === "COMPLETED"
-    ).length,
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDateFilter("");
+    setIsBookedFilter("all");
+    setPaymentStatusFilter("all");
+    setAppointmentStatusFilter("all");
+    setPagination({ pageIndex: 0, pageSize: 10 });
   };
+
+  // Check if any filter is active
+  const isFilterActive =
+    searchTerm ||
+    dateFilter ||
+    isBookedFilter !== "all" ||
+    paymentStatusFilter !== "all" ||
+    appointmentStatusFilter !== "all";
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -297,11 +455,12 @@ const DoctorSchedulePage = () => {
         </div>
         <div className="flex items-center space-x-2">
           <CreateScheduleModal refetch={refetch} />
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               refetch();
-            }} 
+              toast.success("Refreshing schedule data...");
+            }}
             className="gap-2"
           >
             <RefreshCw className="h-4 w-4" />
@@ -309,88 +468,14 @@ const DoctorSchedulePage = () => {
           </Button>
         </div>
       </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <CalendarDays className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Slots</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.total}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.available}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Booked</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.booked}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Video className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Ready for Call
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {
-                    scheduleData.filter(
-                      (s: any) =>
-                        s.isBooked &&
-                        s.appointment?.videoCallingId &&
-                        s.appointment?.paymentStatus === "PAID"
-                    ).length
-                  }
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* DataTable - Now uses client-side pagination built into the component */}
+      {/* DataTable with Pagination */}
       <DataTable
-        data={scheduleData} 
+        data={scheduleData}
         columns={columns}
         tableName="Schedule Overview"
         tableSubTitle="Your complete schedule with appointment details and availability"
         filters={[]}
-        rowTooltipContent={(rowData) => {
+        rowTooltipContent={(rowData: Schedule) => {
           const schedule = rowData.schedule;
           const appointment = rowData.appointment;
 
@@ -478,25 +563,11 @@ const DoctorSchedulePage = () => {
             </div>
           );
         }}
-        // No need to pass pagination props - DataTable handles it internally
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
+        pageCount={meta ? Math.ceil(meta.total / meta.limit) : 1}
+        totalItems={meta?.total || 0}
       />
-
-      {/* Empty State */}
-      {scheduleData.length === 0 && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <CalendarDays className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold mb-2">
-              No schedules available
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              You have not created any schedule slots yet. Click the button
-              below to get started.
-            </p>
-            <CreateScheduleModal refetch={refetch} />
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

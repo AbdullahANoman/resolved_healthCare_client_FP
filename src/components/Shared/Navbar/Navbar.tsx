@@ -19,16 +19,28 @@ import {
   Calendar,
   FileText,
   Home,
-  X
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useUserInfo from "@/hooks/useUserInfo";
 import { logoutUser } from "@/services/actions/logoutUser";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
 const Navbar = () => {
@@ -36,7 +48,7 @@ const Navbar = () => {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-    const handleLogOut = () => {
+  const handleLogOut = () => {
     logoutUser(router);
   };
 
@@ -49,9 +61,17 @@ const Navbar = () => {
 
   const userMenuItems = [
     { name: "Dashboard", href: `/dashboard/${userInfo?.role}`, icon: Shield },
-    { name: "Profile", href: "/profile", icon: User },
-    { name: "Appointments", href: "/appointments", icon: Calendar },
-    { name: "Medical Records", href: "/records", icon: FileText },
+    {
+      name: "Profile",
+      href: `/dashboard/${userInfo?.role}/profile`,
+      icon: User,
+    },
+    {
+      name: "Appointments",
+      href: `/dashboard/${userInfo?.role}/appointments`,
+      icon: Calendar,
+    },
+    // { name: "Medical Records", href: "/records", icon: FileText },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
@@ -116,33 +136,22 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
-            {/* Search Button */}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="ghost" size="icon" className="relative">
-                <Search className="h-4 w-4" />
-              </Button>
-            </motion.div>
-
-            {/* Notifications */}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  3
-                </Badge>
-              </Button>
-            </motion.div>
-
             {/* User Menu or Login Button */}
             {userInfo?.email ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full p-0"
+                    >
                       <Avatar className="h-10 w-10 border-2 border-slate-200 dark:border-slate-700 shadow-sm">
-                        <AvatarImage 
-                          src={userInfo?.profilePhoto} 
-                          alt={userInfo?.name} 
+                        <AvatarImage
+                          src={userInfo?.profilePhoto}
+                          alt={userInfo?.name}
                         />
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white font-semibold">
                           {userInfo?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -152,10 +161,7 @@ const Navbar = () => {
                     </Button>
                   </motion.div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="w-56 mt-2" 
-                  align="end"
-                >
+                <DropdownMenuContent className="w-56 mt-2" align="end">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-semibold">{userInfo?.name}</p>
@@ -174,7 +180,7 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={handleLogOut}
                     className="text-red-600 dark:text-red-400 cursor-pointer"
                   >
@@ -189,7 +195,10 @@ const Navbar = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg">
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
+                >
                   <Link href="/login">
                     {/* <User className="mr-2 h-4 w-4" /> */}
                     Login
@@ -212,22 +221,15 @@ const Navbar = () => {
                     <SheetTitle className="text-lg font-semibold">
                       Menu
                     </SheetTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
                   </div>
 
                   {/* User Info */}
                   {userInfo?.email && (
                     <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg mb-6">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage 
-                          src={userInfo?.profilePhoto} 
-                          alt={userInfo?.name} 
+                        <AvatarImage
+                          src={userInfo?.profilePhoto}
+                          alt={userInfo?.name}
                         />
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white">
                           {userInfo?.name?.charAt(0)?.toUpperCase()}
@@ -241,7 +243,10 @@ const Navbar = () => {
                           {userInfo?.email}
                         </p>
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                      >
                         {userInfo?.role}
                       </Badge>
                     </div>

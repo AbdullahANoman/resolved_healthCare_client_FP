@@ -26,8 +26,6 @@ const SchedulesPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>("");
-  
-  // Add pagination state
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -43,8 +41,6 @@ const SchedulesPage = () => {
   
   const schedules = allSchedules?.schedules?.data || [];
   const meta = allSchedules?.schedules?.meta;
-
-  console.log("Meta data:", meta);
 
   const handleDeleteClick = (scheduleId: string, scheduleDate: string) => {
     setSelectedScheduleId(scheduleId);
