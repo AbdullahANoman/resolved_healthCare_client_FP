@@ -1,220 +1,290 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import React, { useEffect, useState } from 'react';
-
-import PHFullScreenModal from '@/components/Shared/PHModal/PHFullScreenModal';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-   useGetDoctorQuery,
-   useUpdateDoctorMutation,
-} from '@/redux/api/doctorApi';
-import PHForm from '@/components/Forms/PHForm';
-import { FieldValues } from 'react-hook-form';
-import { Button, Grid } from '@mui/material';
-import PHInput from '@/components/Forms/PHInput';
-import PHSelectField from '@/components/Forms/PHSelectField';
-import { Gender } from '@/types';
-import MultipleSelectChip from './MultipleSelectChip';
-import { useGetAllSpecialtiesQuery } from '@/redux/api/specialtiesApi';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 
-type TProps = {
-   open: boolean;
-   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-   id: string;
-};
+interface ProfileUpdateModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  data: any;
+}
 
-const validationSchema = z.object({
-   experience: z.preprocess(
-      (x) => (x ? x : undefined),
-      z.coerce.number().int().optional()
-   ),
-   apointmentFee: z.preprocess(
-      (x) => (x ? x : undefined),
-      z.coerce.number().int().optional()
-   ),
-   name: z.string().optional(),
-   contactNumber: z.string().optional(),
-   registrationNumber: z.string().optional(),
-   gender: z.string().optional(),
-   qualification: z.string().optional(),
-   currentWorkingPlace: z.string().optional(),
-   designation: z.string().optional(),
-});
+const ProfileUpdateModal = ({
+  open,
+  setOpen,
+  data,
+}: ProfileUpdateModalProps) => {
+  const [formData, setFormData] = useState({
+    name: data?.name || "",
+    email: data?.email || "",
+    contactNumber: data?.contactNumber || "",
+    address: data?.address || "",
+    gender: data?.gender || "",
+    designation: data?.designation || "",
+    qualification: data?.qualification || "",
+    experience: data?.experience || "",
+    apointmentFee: data?.apointmentFee || "",
+    currentWorkingPlace: data?.currentWorkingPlace || "",
+    registrationNumber: data?.registrationNumber || "",
+  });
 
-const ProfileUpdateModal = ({ open, setOpen, id }: TProps) => {
-   const { data: doctorData, refetch, isSuccess } = useGetDoctorQuery(id);
-   const { data: allSpecialties } = useGetAllSpecialtiesQuery(undefined);
-   const [selectedSpecialtiesIds, setSelectedSpecialtiesIds] = useState([]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission
+    console.log("Form data:", formData);
+    setOpen(false);
+  };
 
-   const [updateDoctor, { isLoading: updating }] = useUpdateDoctorMutation();
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Update Profile</DialogTitle>
+        </DialogHeader>
 
-   useEffect(() => {
-      if (!isSuccess) return;
-
-      setSelectedSpecialtiesIds(
-         doctorData?.doctorSpecialties.map((sp: any) => {
-            return sp.specialtiesId;
-         })
-      );
-   }, [isSuccess]);
-
-   const submitHandler = async (values: FieldValues) => {
-      const specialties = selectedSpecialtiesIds.map(
-         (specialtiesId: string) => ({
-            specialtiesId,
-            isDeleted: false,
-         })
-      );
-
-      console.log({ id });
-      // return;
-
-      const excludedFields: Array<keyof typeof values> = [
-         'email',
-         'id',
-         'role',
-         'needPasswordChange',
-         'status',
-         'createdAt',
-         'updatedAt',
-         'isDeleted',
-         'averageRating',
-         'review',
-         'profilePhoto',
-         'registrationNumber',
-         'schedules',
-         'doctorSpecialties',
-      ];
-
-      const updatedValues = Object.fromEntries(
-         Object.entries(values).filter(([key]) => {
-            return !excludedFields.includes(key);
-         })
-      );
-
-      updatedValues.specialties = specialties;
-
-      try {
-         updateDoctor({ body: updatedValues, id });
-         await refetch();
-         setOpen(false);
-      } catch (error) {
-         console.log(error);
-      }
-   };
-
-   return (
-      <PHFullScreenModal open={open} setOpen={setOpen} title='Update Profile'>
-         <PHForm
-            onSubmit={submitHandler}
-            defaultValues={doctorData}
-            resolver={zodResolver(validationSchema)}
-         >
-            <Grid container spacing={2} sx={{ my: 5 }}>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput name='name' label='Name' sx={{ mb: 2 }} fullWidth />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='email'
-                     type='email'
-                     label='Email'
-                     sx={{ mb: 2 }}
-                     fullWidth
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg text-slate-900">
+                Personal Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='contactNumber'
-                     label='Contract Number'
-                     sx={{ mb: 2 }}
-                     fullWidth
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                   />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='address'
-                     label='Address'
-                     sx={{ mb: 2 }}
-                     fullWidth
+                </div>
+                <div>
+                  <Label htmlFor="contactNumber">Contact Number</Label>
+                  <Input
+                    id="contactNumber"
+                    value={formData.contactNumber}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        contactNumber: e.target.value,
+                      })
+                    }
                   />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='registrationNumber'
-                     label='Registration Number'
-                     sx={{ mb: 2 }}
-                     fullWidth
-                  />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='experience'
-                     type='number'
-                     label='Experience'
-                     sx={{ mb: 2 }}
-                     fullWidth
-                  />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHSelectField
-                     items={Gender}
-                     name='gender'
-                     label='Gender'
-                     sx={{ mb: 2 }}
-                     fullWidth
-                  />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='apointmentFee'
-                     type='number'
-                     label='ApointmentFee'
-                     sx={{ mb: 2 }}
-                     fullWidth
-                  />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='qualification'
-                     label='Qualification'
-                     sx={{ mb: 2 }}
-                     fullWidth
-                  />
-               </Grid>
+                </div>
+                <div>
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, gender: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='currentWorkingPlace'
-                     label='Current Working Place'
-                     sx={{ mb: 2 }}
-                     fullWidth
+            {/* Professional Information */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg text-slate-900">
+                Professional Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="designation">Designation</Label>
+                  <Input
+                    id="designation"
+                    value={formData.designation}
+                    onChange={(e) =>
+                      setFormData({ ...formData, designation: e.target.value })
+                    }
                   />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <PHInput
-                     name='designation'
-                     label='Designation'
-                     sx={{ mb: 2 }}
-                     fullWidth
+                </div>
+                <div>
+                  <Label htmlFor="qualification">Qualification</Label>
+                  <Input
+                    id="qualification"
+                    value={formData.qualification}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        qualification: e.target.value,
+                      })
+                    }
                   />
-               </Grid>
-               <Grid item xs={12} sm={12} md={4}>
-                  <MultipleSelectChip
-                     allSpecialties={allSpecialties}
-                     selectedIds={selectedSpecialtiesIds}
-                     setSelectedIds={setSelectedSpecialtiesIds}
+                </div>
+                <div>
+                  <Label htmlFor="experience">Experience (years)</Label>
+                  <Input
+                    id="experience"
+                    type="number"
+                    value={formData.experience}
+                    onChange={(e) =>
+                      setFormData({ ...formData, experience: e.target.value })
+                    }
                   />
-               </Grid>
-            </Grid>
+                </div>
+                <div>
+                  <Label htmlFor="apointmentFee">Appointment Fee ($)</Label>
+                  <Input
+                    id="apointmentFee"
+                    type="number"
+                    value={formData.apointmentFee}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        apointmentFee: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
 
-            <Button type='submit' disabled={updating}>
-               Save
+            {/* Additional Information */}
+            <div className="md:col-span-2 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currentWorkingPlace">Current Workplace</Label>
+                  <Input
+                    id="currentWorkingPlace"
+                    value={formData.currentWorkingPlace}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        currentWorkingPlace: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="registrationNumber">
+                    Registration Number
+                  </Label>
+                  <Input
+                    id="registrationNumber"
+                    value={formData.registrationNumber}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        registrationNumber: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Specialties Section */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg text-slate-900">
+              Specialties
+            </h3>
+            <div className="flex flex-wrap gap-2 p-4 border border-slate-200 rounded-lg">
+              <Badge className="px-3 py-1 cursor-pointer hover:bg-blue-600">
+                Cardiology
+              </Badge>
+              <Badge className="px-3 py-1 cursor-pointer hover:bg-blue-600">
+                Neurology
+              </Badge>
+              <Badge className="px-3 py-1 cursor-pointer hover:bg-blue-600">
+                Pediatrics
+              </Badge>
+              <Badge className="px-3 py-1 cursor-pointer hover:bg-blue-600">
+                Orthopedics
+              </Badge>
+              <Badge className="px-3 py-1 cursor-pointer hover:bg-blue-600">
+                Dermatology
+              </Badge>
+            </div>
+          </div>
+
+          {/* Availability */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg text-slate-900">
+              Availability
+            </h3>
+            <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+              <div>
+                <p className="font-medium">Accepting New Patients</p>
+                <p className="text-sm text-slate-600">
+                  Allow new patients to book appointments
+                </p>
+              </div>
+              <Switch />
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-3 pt-6 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
             </Button>
-         </PHForm>
-      </PHFullScreenModal>
-   );
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
-export default ProfileUpdateModal;
+
+export default ProfileUpdateModal

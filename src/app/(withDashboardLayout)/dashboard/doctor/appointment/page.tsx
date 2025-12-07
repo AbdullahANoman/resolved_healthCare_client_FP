@@ -12,25 +12,25 @@ import { TableSkeleton } from "@/components/Shared/DataTable/TableSkeleton";
 
 const DoctorAppointmentsTable = () => {
   const { data, isLoading } = useGetMyAppointmentsQuery({});
-  
+
   const appointmentData = data?.appointments?.data || [];
 
   // Format date utility
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   // Format time utility
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
   };
@@ -48,7 +48,8 @@ const DoctorAppointmentsTable = () => {
   const canJoinAppointment = (appointment: any) => {
     const isPaid = appointment.paymentStatus === "PAID";
     const isScheduled = appointment.status === "SCHEDULED";
-    const isUpcoming = new Date(appointment.schedule.startDateTime) > new Date();
+    const isUpcoming =
+      new Date(appointment.schedule.startDateTime) > new Date();
     return isPaid && isScheduled && isUpcoming;
   };
 
@@ -211,7 +212,11 @@ const DoctorAppointmentsTable = () => {
 
         return (
           <Link
-            href={canJoin ? `/video?videoCallingId=${appointment.videoCallingId}` : "#"}
+            href={
+              canJoin
+                ? `/video?videoCallingId=${appointment.videoCallingId}`
+                : "#"
+            }
             passHref
           >
             <button
@@ -235,7 +240,7 @@ const DoctorAppointmentsTable = () => {
     },
   ];
 
-  if (isLoading) return <TableSkeleton/>;
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div>
@@ -266,7 +271,9 @@ const DoctorAppointmentsTable = () => {
           },
         ]}
         rowTooltipContent={(rowData) => {
-          const daysRemaining = calculateDaysUntilAppointment(rowData.schedule.startDateTime);
+          const daysRemaining = calculateDaysUntilAppointment(
+            rowData.schedule.startDateTime
+          );
           const canJoin = canJoinAppointment(rowData);
 
           return (
@@ -276,42 +283,51 @@ const DoctorAppointmentsTable = () => {
                 {daysRemaining >= 0 && (
                   <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
                     {daysRemaining > 0
-                      ? `In ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}`
+                      ? `In ${daysRemaining} day${
+                          daysRemaining !== 1 ? "s" : ""
+                        }`
                       : "Today"}
                   </span>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-xs ">Patient:</span>
-                  <span className="text-xs font-medium">{rowData.patient.name}</span>
+                  <span className="text-xs font-medium">
+                    {rowData.patient.name}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Contact:</span>
                   <span className="text-xs font-medium">
                     {rowData.patient.contactNumber || "N/A"}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Time:</span>
                   <span className="text-xs font-medium">
-                    {formatTime(rowData.schedule.startDateTime)} - {formatTime(rowData.schedule.endDateTime)}
+                    {formatTime(rowData.schedule.startDateTime)} -{" "}
+                    {formatTime(rowData.schedule.endDateTime)}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Fee:</span>
-                  <span className="text-xs font-medium">৳{rowData?.doctor?.appointmentFee}</span>
+                  <span className="text-xs font-medium">
+                    ৳{rowData?.doctor?.appointmentFee}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-xs ">Can Join:</span>
-                  <span className={`text-xs font-medium ${
-                    canJoin ? "text-green-600" : "text-red-600"
-                  }`}>
+                  <span
+                    className={`text-xs font-medium ${
+                      canJoin ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {canJoin ? "Yes" : "No"}
                   </span>
                 </div>

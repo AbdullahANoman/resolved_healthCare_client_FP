@@ -2,11 +2,9 @@ export interface DoctorSchedule {
   doctorId: string;
   scheduleId: string;
   isBooked: boolean;
-  createdAt: string;
-  updatedAt: string;
   appointmentId: string | null;
-  doctor: Doctor;
-  schedule: Schedule;
+  schedule:Schedule
+  doctorSchedules:Schedule
 }
 
 export interface Doctor {
@@ -35,4 +33,6 @@ export interface Schedule {
   endDate: string;
   createdAt: string;
   updatedAt: string;
+  startDateTime:string;
+  endDateTime:string
 }

@@ -43,9 +43,7 @@ export const modifyPayload = (values: any) => {
   // Proper file handling
   if (file instanceof File) {
     formData.append('file', file);
-  } else {
-    throw new Error('Invalid file provided');
-  }
+  } 
 
   
   return formData;

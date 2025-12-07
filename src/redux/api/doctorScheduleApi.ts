@@ -1,11 +1,12 @@
 import { baseApi } from "./baseApi";
 import { tagTypes } from "../tag-types";
-import { IMeta } from "@/types/common";
+import { DoctorSchedule } from "@/types/doctorSchedules";
+import { IMeta } from "@/types";
 
 export const doctorScheduleApi = baseApi.injectEndpoints({
-  endpoints: (build) => ({
+  endpoints: (build: any) => ({
     createDoctorSchedule: build.mutation({
-      query: (data) => ({
+      query: (data: any) => ({
         url: "/doctor-schedule",
         method: "POST",
         data,
@@ -22,7 +23,7 @@ export const doctorScheduleApi = baseApi.injectEndpoints({
       },
       transformResponse: (response: any) => {
         return {
-          doctorSchedules: response.data, // Updated to match your API response
+          doctorSchedules: response.data,
           meta: response.data.meta,
         };
       },
@@ -36,10 +37,22 @@ export const doctorScheduleApi = baseApi.injectEndpoints({
       providesTags: [tagTypes.doctorSchedule],
     }),
     getMySchedule: build.query({
-      query: () => ({
+      query: (arg: Record<string, any>) => ({
         url: "/doctor-schedule/my-schedule",
         method: "GET",
+        params: arg,
       }),
+      transformResponse: (
+        response: {
+          data: any;
+          meta: any;
+        },
+      ) => {
+        return {
+          data: response?.data,
+          meta: response.meta,
+        };
+      },
       providesTags: [tagTypes.doctorSchedule],
     }),
 

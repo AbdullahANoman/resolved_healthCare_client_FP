@@ -13,7 +13,6 @@ export const userLogin = async (data: FieldValues) => {
          },
          body: JSON.stringify(data),
          credentials: 'include',
-         // cache: "no-store",
       }
    );
    const userInfo = await res.json();

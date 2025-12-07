@@ -11,6 +11,8 @@ import { Gender } from "@/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -56,21 +58,7 @@ type TProps = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   doctorId: string;
-  onSuccess:  React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-type FormData = {
-  email: string;
-  name: string;
-  contactNumber: string;
-  address: string;
-  registrationNumber: string;
-  gender: string;
-  experience: number;
-  appointmentFee: number;
-  qualification: string;
-  currentWorkingPlace: string;
-  designation: string;
+  onSuccess?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type Specialty = {
@@ -79,14 +67,41 @@ type Specialty = {
   icon: string;
 };
 
-const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
+// Define Zod schema for validation
+const doctorSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  contactNumber: z.string().min(10, "Please enter a valid contact number"),
+  address: z.string().optional(),
+  registrationNumber: z.string().min(1, "Registration number is required"),
+  gender: z.enum(["MALE","FEMALE"], {
+    required_error: "Gender is required",
+  }),
+  experience: z.coerce
+    .number()
+    .min(0, "Experience cannot be negative")
+    .max(50, "Experience seems too high"),
+  appointmentFee: z.coerce
+    .number()
+    .min(0, "Appointment fee cannot be negative"),
+  qualification: z.string().min(1, "Qualification is required"),
+  currentWorkingPlace: z
+    .string()
+    .min(1, "Current working place is required"),
+  designation: z.string().min(1, "Designation is required"),
+});
+
+type FormData = z.infer<typeof doctorSchema>;
+
+const UpdateDoctorModal = ({ open, setOpen, doctorId, onSuccess }: TProps) => {
   const router = useRouter();
   const { data, isLoading, error } = useGetDoctorQuery(doctorId);
   const [updateDoctor, { isLoading: isUpdating }] = useUpdateDoctorMutation();
 
   // Fetch all specialties
-  const { data: specialtiesData, isLoading: isSpecialtiesLoading } =
-    useGetAllSpecialtiesQuery({});
+  const { 
+    data: specialtiesData, 
+    isLoading: isSpecialtiesLoading 
+  } = useGetAllSpecialtiesQuery({});
 
   // State for selected specialties and initial specialties
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
@@ -101,44 +116,57 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
     setValue,
     watch,
     reset,
-  } = useForm<FormData>();
+    trigger,
+  } = useForm<FormData>({
+    resolver: zodResolver(doctorSchema),
+    defaultValues: {
+      gender: data?.gender, // Default value
+    },
+  });
 
   // Set form values when data is loaded
   useEffect(() => {
-    console.log(data);
     if (data && open) {
-      setValue("name", data?.name || "");
-      setValue("email", data?.email || "");
-      setValue("contactNumber", data?.contactNumber || "");
-      setValue("address", data?.address || "");
-      setValue("registrationNumber", data?.registrationNumber || "");
-      setValue("gender", data?.gender || "");
-      setValue("experience", data?.experience || 0);
-      setValue("appointmentFee", data?.appointmentFee || 0);
-      setValue("qualification", data?.qualification || "");
-      setValue("currentWorkingPlace", data?.currentWorkingPlace || "");
-      setValue("designation", data?.designation || "");
+      console.log("Setting form data:", data);
+      
+      // Reset form with doctor data
+      reset({
+        name: data?.name || "",
+        contactNumber: data?.contactNumber || "",
+        address: data?.address || "",
+        registrationNumber: data?.registrationNumber || "",
+        gender: data?.gender, // Ensure gender has a value
+        experience: data?.experience || 0,
+        appointmentFee: data?.appointmentFee || 0,
+        qualification: data?.qualification || "",
+        currentWorkingPlace: data?.currentWorkingPlace || "",
+        designation: data?.designation || "",
+      });
 
       if (data?.doctorSpecialties) {
-        console.log(data)
         const doctorSpecialtyIds = data.doctorSpecialties.map(
           (ds: any) => ds.specialtiesId
         );
+        console.log("Doctor specialties:", doctorSpecialtyIds);
         setSelectedSpecialties(doctorSpecialtyIds);
-        setInitialSpecialties(doctorSpecialtyIds); // Set initial state
+        setInitialSpecialties(doctorSpecialtyIds);
       }
     }
-  }, [data, open, setValue]);
+  }, [data, open, reset]);
 
-  // Filter specialties based on search term - FIXED: use specialtiesData?.data
-  const filteredSpecialties = specialtiesData?.filter((specialty: Specialty) =>
-    specialty.title.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Filter specialties based on search term
+  const filteredSpecialties = (specialtiesData || []).filter(
+    (specialty: Specialty) =>
+      specialty.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Add specialty to selected list
   const addSpecialty = () => {
-    if (selectedSpecialtyId && !selectedSpecialties.includes(selectedSpecialtyId)) {
-      setSelectedSpecialties(prev => [...prev, selectedSpecialtyId]);
+    if (
+      selectedSpecialtyId &&
+      !selectedSpecialties.includes(selectedSpecialtyId)
+    ) {
+      setSelectedSpecialties((prev) => [...prev, selectedSpecialtyId]);
       setSelectedSpecialtyId(""); // Reset select
       setSearchTerm(""); // Reset search
     }
@@ -146,18 +174,24 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
 
   // Remove specialty from selected list
   const removeSpecialty = (specialtyId: string) => {
-    setSelectedSpecialties(prev => prev.filter(id => id !== specialtyId));
+    setSelectedSpecialties((prev) => prev.filter((id) => id !== specialtyId));
   };
 
   const handleFormSubmit = async (values: FormData) => {
     try {
+      // Validate at least one specialty is selected
+      if (selectedSpecialties.length === 0) {
+        toast.error("Please select at least one specialty");
+        return;
+      }
+
       // Determine which specialties are added vs removed
       const addedSpecialties = selectedSpecialties.filter(
-        specialtyId => !initialSpecialties.includes(specialtyId)
+        (specialtyId) => !initialSpecialties.includes(specialtyId)
       );
-      
+
       const removedSpecialties = initialSpecialties.filter(
-        specialtyId => !selectedSpecialties.includes(specialtyId)
+        (specialtyId) => !selectedSpecialties.includes(specialtyId)
       );
 
       // Prepare specialties payload
@@ -174,18 +208,14 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
         })),
       ];
 
-      console.log("Selected specialties:", selectedSpecialties);
-      console.log("Initial specialties:", initialSpecialties);
-      console.log("Added specialties:", addedSpecialties);
-      console.log("Removed specialties:", removedSpecialties);
-      console.log("Final payload:", specialtiesPayload);
-
       const processedValues = {
         ...values,
         experience: Number(values.experience),
         appointmentFee: Number(values.appointmentFee),
         specialties: specialtiesPayload,
       };
+
+      console.log("Submitting data:", processedValues);
 
       const res = await updateDoctor({
         id: doctorId,
@@ -198,6 +228,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
             "The doctor's information and specialties have been updated.",
         });
         handleClose();
+        if (onSuccess) onSuccess(true);
         router.refresh();
       }
     } catch (err: any) {
@@ -217,6 +248,10 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
     setSearchTerm("");
     setSelectedSpecialtyId("");
   };
+
+  // Watch gender value for debugging
+  const genderValue = watch("gender");
+  console.log("Current gender value:", genderValue);
 
   if (error) {
     return (
@@ -307,13 +342,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     id="name"
                     placeholder="Dr. John Smith"
                     className={errors.name ? "border-red-500" : ""}
-                    {...register("name", {
-                      required: "Full name is required",
-                      minLength: {
-                        value: 2,
-                        message: "Name must be at least 2 characters",
-                      },
-                    })}
+                    {...register("name")}
                   />
                   {errors.name && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -323,34 +352,6 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="flex items-center gap-2 font-medium"
-                  >
-                    <Mail className="h-4 w-4 text-blue-600" />
-                    Email Address *
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="doctor@example.com"
-                    className={errors.email ? "border-red-500" : ""}
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Invalid email address",
-                      },
-                    })}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <X className="h-3 w-3" />
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
 
                 <div className="space-y-2">
                   <Label
@@ -364,13 +365,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     id="contactNumber"
                     placeholder="+1 (555) 123-4567"
                     className={errors.contactNumber ? "border-red-500" : ""}
-                    {...register("contactNumber", {
-                      required: "Contact number is required",
-                      pattern: {
-                        value: /^[+]?[0-9\s\-()]{10,}$/,
-                        message: "Please enter a valid phone number",
-                      },
-                    })}
+                    {...register("contactNumber")}
                   />
                   {errors.contactNumber && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -389,11 +384,13 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     Gender *
                   </Label>
                   <Select
-                    onValueChange={(value) => setValue("gender", value)}
+                    onValueChange={(value:any) => setValue("gender", value)}
                     value={watch("gender")}
+                    defaultValue={data?.gender}
                   >
                     <SelectTrigger
                       className={errors.gender ? "border-red-500" : ""}
+                      id="gender"
                     >
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
@@ -405,6 +402,10 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <input
+                    type="hidden"
+                    {...register("gender")}
+                  />
                   {errors.gender && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
                       <X className="h-3 w-3" />
@@ -413,7 +414,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                   )}
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2 ">
                   <Label
                     htmlFor="address"
                     className="flex items-center gap-2 font-medium"
@@ -452,9 +453,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     className={
                       errors.registrationNumber ? "border-red-500" : ""
                     }
-                    {...register("registrationNumber", {
-                      required: "Registration number is required",
-                    })}
+                    {...register("registrationNumber")}
                   />
                   {errors.registrationNumber && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -479,14 +478,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     max="50"
                     placeholder="5"
                     className={errors.experience ? "border-red-500" : ""}
-                    {...register("experience", {
-                      required: "Experience is required",
-                      min: {
-                        value: 0,
-                        message: "Experience cannot be negative",
-                      },
-                      max: { value: 50, message: "Experience seems too high" },
-                    })}
+                    {...register("experience")}
                   />
                   {errors.experience && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -508,9 +500,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     id="qualification"
                     placeholder="MBBS, MD, PhD"
                     className={errors.qualification ? "border-red-500" : ""}
-                    {...register("qualification", {
-                      required: "Qualification is required",
-                    })}
+                    {...register("qualification")}
                   />
                   {errors.qualification && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -532,9 +522,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     id="designation"
                     placeholder="Senior Consultant"
                     className={errors.designation ? "border-red-500" : ""}
-                    {...register("designation", {
-                      required: "Designation is required",
-                    })}
+                    {...register("designation")}
                   />
                   {errors.designation && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -558,9 +546,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     className={
                       errors.currentWorkingPlace ? "border-red-500" : ""
                     }
-                    {...register("currentWorkingPlace", {
-                      required: "Current workplace is required",
-                    })}
+                    {...register("currentWorkingPlace")}
                   />
                   {errors.currentWorkingPlace && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -585,10 +571,7 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     step="10"
                     placeholder="100"
                     className={errors.appointmentFee ? "border-red-500" : ""}
-                    {...register("appointmentFee", {
-                      required: "Appointment fee is required",
-                      min: { value: 0, message: "Fee cannot be negative" },
-                    })}
+                    {...register("appointmentFee")}
                   />
                   {errors.appointmentFee && (
                     <p className="text-sm text-red-600 flex items-center gap-1">
@@ -681,18 +664,18 @@ const UpdateDoctorModal = ({ open, setOpen, doctorId }: TProps) => {
                     <Label className="text-sm font-medium">
                       Selected Specialties ({selectedSpecialties.length})
                     </Label>
-                    
+
                     {selectedSpecialties.length === 0 ? (
                       <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
                         <HeartPulse className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-gray-500 text-sm">
-                          No specialties selected. Use the search above to add specialties.
+                          No specialties selected. Use the search above to add
+                          specialties.
                         </p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg">
                         {selectedSpecialties.map((specialtyId) => {
-                          // FIXED: use specialtiesData?.data instead of specialtiesData
                           const specialty = specialtiesData?.find(
                             (s: Specialty) => s.id === specialtyId
                           );
