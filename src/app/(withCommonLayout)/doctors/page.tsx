@@ -306,17 +306,10 @@ const DoctorsPageContent = () => {
 
       {/* Desktop Header */}
       <div className="hidden lg:block bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">
-              Find Your Specialist Doctor
-            </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Connect with experienced healthcare professionals
-            </p>
-          </div>
+        <div className="">
 
-          <div className="max-w-2xl mx-auto mb-8">
+
+          <div className="max-w-xl mx-auto pl-20 py-4">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input

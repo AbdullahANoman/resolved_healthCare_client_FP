@@ -15,10 +15,11 @@ export const metaApi = baseApi.injectEndpoints({
       transformResponse: (
         response: {
           appointmentCount: number;
-          patientCoount: number;
+          patientCount: number;
           doctorCount: number;
-          paymentCount: number;
+          patientCoount: number;
           reviewCount: number;
+          formattedAppointmentStatusDistribution:[];
           totalRevenue: {
             _sum: {
               amount: number;
