@@ -42,6 +42,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const userInfo = useUserInfo();
@@ -50,6 +51,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const handleLogOut = () => {
     logoutUser(router);
+    toast.success("Logged out successfully");
   };
 
   const navigationItems = [

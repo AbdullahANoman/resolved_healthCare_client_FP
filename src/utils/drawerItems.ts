@@ -15,6 +15,7 @@ import BookOnlineIcon from '@mui/icons-material/BookOnline';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import { FaPrescriptionBottleAlt } from "react-icons/fa";
 
 
 export const drawerItems = (role: UserRole): DrawerItem[] => {
@@ -105,6 +106,11 @@ export const drawerItems = (role: UserRole): DrawerItem[] => {
                title: 'Appointments',
                path: `${role}/appointment`,
                icon: BookOnlineIcon,
+            },
+            {
+                title: 'Patient Prescriptions',
+               path: `${role}/patient-prescription`,
+               icon: ReceiptLongIcon,
             }
          );
          break;

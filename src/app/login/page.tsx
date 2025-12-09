@@ -21,8 +21,8 @@ import { Label } from "@/components/ui/label";
 import { userLogin } from "@/services/actions/userLogin";
 import { storeUserInfo } from "@/services/auth.services";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
 import { decodedToken } from "@/utils/jwt";
+import { toast } from "sonner";
 
 // Validation schema
 const loginSchema = z.object({
@@ -50,7 +50,6 @@ const DASHBOARD_ROUTES = {
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
 
   const {
@@ -104,28 +103,17 @@ export default function LoginPage() {
         const dashboardRoute = getDashboardRoute(role);
         // const targetRoute = needsChange ? "/change-password" : dashboardRoute;
 
-        toast({
-          title: "Login Successful!",
-          description: `Welcome back to healthBridge${role ? ` (${role})` : ""}`,
-          variant: "default",
-        });
+        toast.success("Login successful!");
 
         router.push(dashboardRoute);
         router.refresh();
       } else {
-        toast({
-          title: "Login Failed",
-          description: res?.message || "Invalid credentials. Please try again.",
-          variant: "destructive",
-        });
+        console.log(res)
+        toast.error(res?.message || "Login failed. Please try again.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login Error",
-        description: error.message || "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error?.message || "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

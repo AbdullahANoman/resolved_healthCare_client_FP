@@ -13,6 +13,7 @@ export const prescriptionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.prescription],
     }),
+
     getAllPrescriptions: build.query({
       query: (arg: Record<string, any>) => ({
         url: "/prescription/my-prescription",
@@ -25,6 +26,8 @@ export const prescriptionApi = baseApi.injectEndpoints({
       }),
       providesTags: [tagTypes.prescription],
     }),
+
+    
   }),
 });
 
