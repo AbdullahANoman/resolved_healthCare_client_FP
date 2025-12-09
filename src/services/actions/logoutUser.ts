@@ -5,6 +5,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 export const logoutUser = (router: AppRouterInstance) => {
   localStorage.removeItem(authKey);
   deleteCookies([authKey, "refreshToken", "accessToken"]);
+  deleteCookies(["accessToken"]);
   router.push("/");
   setTimeout(() => {
     window.location.href = "/login";
