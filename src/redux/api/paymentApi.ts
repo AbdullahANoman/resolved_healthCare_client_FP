@@ -12,9 +12,9 @@ const paymentApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.payment],
     }),
-     validPayment: build.mutation({
-      query: (tranId: string) => ({
-        url: `/payment/pnr?${tranId}`,
+    validPayment: build.mutation({
+      query: () => ({
+        url: `/payment/pnr`,
         method: "GET",
       }),
       invalidatesTags: [tagTypes.payment],
@@ -30,8 +30,10 @@ const paymentApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useInitialPaymentMutation , useValidPaymentMutation, useGetAllPaymentsQuery} = paymentApi;
+export const {
+  useInitialPaymentMutation,
+  useValidPaymentMutation,
+  useGetAllPaymentsQuery,
+} = paymentApi;
 
 export default paymentApi;
-
-

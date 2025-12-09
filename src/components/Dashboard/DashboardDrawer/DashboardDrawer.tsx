@@ -31,6 +31,7 @@ import Sidebar from "../SideBar/SideBar";
 import { logoutUser } from "@/services/actions/logoutUser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function DashboardDrawer({
   children,
@@ -55,6 +56,7 @@ export default function DashboardDrawer({
 
   const handleLogOut = () => {
     logoutUser(router);
+    toast.success("Logged out successfully");
   };
 
   const getCurrentTime = () => {
