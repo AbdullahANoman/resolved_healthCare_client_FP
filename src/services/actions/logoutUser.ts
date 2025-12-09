@@ -8,5 +8,6 @@ export const logoutUser = (router: AppRouterInstance) => {
   router.push("/");
   setTimeout(() => {
     window.location.href = "/login";
+    window.location.reload();
   }, 100);
 };
