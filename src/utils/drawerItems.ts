@@ -26,11 +26,11 @@ export const drawerItems = (role: UserRole): DrawerItem[] => {
          path: `${role}/profile`,
          icon: PersonIcon,
       },
-      {
-         title: 'Change Password',
-         path: `change-password`,
-         icon: KeyIcon,
-      },
+      // {
+      //    title: 'Change Password',
+      //    path: `/${role}/change-password`,
+      //    icon: KeyIcon,
+      // },
    ];
 
    switch (role) {
@@ -81,11 +81,11 @@ export const drawerItems = (role: UserRole): DrawerItem[] => {
                path: `${role}/patients`,
                icon: LocalHospitalIcon,
             },
-            {
-               title: 'Reviews',
-               path: `${role}/reviews`,
-               icon: ReviewsIcon,
-            },
+            // {
+            //    title: 'Reviews',
+            //    path: `${role}/reviews`,
+            //    icon: ReviewsIcon,
+            // },
          );
          break;
 

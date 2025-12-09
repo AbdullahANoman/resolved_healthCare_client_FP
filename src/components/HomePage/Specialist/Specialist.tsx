@@ -34,7 +34,7 @@ const Specialist = async () => {
 
           {/* Specialties Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
-            {specialties.slice(0, 6).map((specialty: any) => (
+            {specialties?.slice(0, 6).map((specialty: any) => (
               <Link
                 key={specialty.id}
                 href={`/doctors?specialties=${specialty.title}`}

@@ -53,10 +53,10 @@ const Navbar = () => {
   };
 
   const navigationItems = [
-    { name: "Consultation", href: "/consultation", icon: Stethoscope },
+    // { name: "Consultation", href: "/consultation", icon: Stethoscope },
     { name: "Doctors", href: "/doctors", icon: User },
-    { name: "Diagnostics", href: "/diagnostics", icon: Activity },
-    { name: "Health Plans", href: "/plans", icon: Heart },
+    // { name: "Diagnostics", href: "/diagnostics", icon: Activity },
+    // { name: "Health Plans", href: "/plans", icon: Heart },
   ];
 
   const userMenuItems = [
@@ -72,7 +72,7 @@ const Navbar = () => {
       icon: Calendar,
     },
     // { name: "Medical Records", href: "/records", icon: FileText },
-    { name: "Settings", href: "/settings", icon: Settings },
+    // { name: "Settings", href: "/settings", icon: Settings }consultya
   ];
 
   return (
