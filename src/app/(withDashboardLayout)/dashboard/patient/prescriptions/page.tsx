@@ -11,7 +11,7 @@ import { TableSkeleton } from "@/components/Shared/DataTable/TableSkeleton";
 
 const PatientPrescriptionsPage = () => {
   const { data, isLoading } = useGetAllPrescriptionsQuery({});
-  
+
   const prescriptionData = data?.prescriptions || [];
   // Format date utility
   const formatDate = (dateString: string) => {
@@ -102,7 +102,7 @@ const PatientPrescriptionsPage = () => {
       cell: ({ row }) => {
         const followUpDate = row.original.followUpDate;
         if (!followUpDate) return <span className="text-sm text-gray-400">-</span>;
-        
+
         return (
           <div className="flex items-center space-x-1">
             <Calendar className="h-3 w-3 text-blue-500" />
@@ -131,15 +131,14 @@ const PatientPrescriptionsPage = () => {
         const status = row.original.appointment.status;
         return (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              status === "COMPLETED"
+            className={`px-2 py-1 rounded-full text-xs font-medium ${status === "COMPLETED"
                 ? "bg-green-100 text-green-800"
                 : status === "SCHEDULED"
-                ? "bg-blue-100 text-blue-800"
-                : status === "CANCELLED"
-                ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
+                  ? "bg-blue-100 text-blue-800"
+                  : status === "CANCELLED"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-800"
+              }`}
           >
             {status}
           </span>

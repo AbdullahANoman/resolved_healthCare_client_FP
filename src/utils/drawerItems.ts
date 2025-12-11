@@ -104,7 +104,7 @@ export const drawerItems = (role: UserRole): DrawerItem[] => {
             },
             {
                title: 'Appointments',
-               path: `${role}/appointment`,
+               path: `${role}/appointments`,
                icon: BookOnlineIcon,
             },
             {

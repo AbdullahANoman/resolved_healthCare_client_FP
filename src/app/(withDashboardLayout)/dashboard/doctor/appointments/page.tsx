@@ -295,7 +295,7 @@ const DoctorAppointmentsTable = () => {
                 <div className="flex justify-between">
                   <span className="text-xs ">Patient:</span>
                   <span className="text-xs font-medium">
-                    {rowData.patient.name}
+                    {rowData?.patient?.name}
                   </span>
                 </div>
 

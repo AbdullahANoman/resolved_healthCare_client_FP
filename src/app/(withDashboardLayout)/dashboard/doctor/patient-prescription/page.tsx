@@ -58,11 +58,7 @@ const PatientPrescriptionPage = () => {
   };
 
   const handleCreatePrescription = (appointment: any) => {
-    // if (!canCreatePrescription(appointment)) {
-    //   toast.error("Prescription can only be created for completed or ongoing appointments");
-    //   return;
-    // }
-    
+
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
   };
@@ -94,7 +90,7 @@ const PatientPrescriptionPage = () => {
             <User className="h-4 w-4 text-gray-500" />
             <div className="flex flex-col">
               <span className="font-medium text-gray-900 text-sm">
-                {patient.name}
+                {patient?.name}
               </span>
               <span className="text-xs text-gray-600">Patient</span>
             </div>
@@ -344,7 +340,7 @@ const PatientPrescriptionPage = () => {
                 <div className="flex justify-between">
                   <span className="text-xs ">Patient:</span>
                   <span className="text-xs font-medium">
-                    {rowData.patient.name}
+                    {rowData?.patient?.name}
                   </span>
                 </div>
 
@@ -397,7 +393,7 @@ const PatientPrescriptionPage = () => {
           }}
           appointmentId={selectedAppointment.id}
           patientId={selectedAppointment.patient.id}
-          patientName={selectedAppointment.patient.name}
+          patientName={selectedAppointment.patient?.name}
           doctorId={selectedAppointment.doctorId}
         />
       )}
