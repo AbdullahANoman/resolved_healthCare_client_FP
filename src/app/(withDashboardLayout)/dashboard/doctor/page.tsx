@@ -238,7 +238,7 @@ const DoctorDashboardPage = () => {
           value={totalAppointments}
           icon={Calendar}
           description={`${upcomingAppointments.filter(a => a.status === 'confirmed').length} confirmed`}
-          href="/dashboard/doctor/appointments"
+          href="/dashboard/s"
         />
         <StatCard
           title="Active Patients"

@@ -11,21 +11,58 @@ const paymentApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       invalidatesTags: [tagTypes.payment],
+      transformResponse: (response: any) => {
+        return {
+          ...response,
+          paymentUrl: response?.data?.paymentUrl || response?.paymentUrl,
+          paymentId: response?.data?.paymentId || response?.paymentId,
+        };
+      },
     }),
     validPayment: build.mutation({
-      query: () => ({
+      query: (arg: Record<string, any>) => ({
         url: `/payment/pnr`,
         method: "GET",
+        params: arg,
       }),
-      invalidatesTags: [tagTypes.payment],
+      transformResponse: (response: any) => {
+        return {
+          response,
+        };
+      },
     }),
-    getAllPayments: build.query({
-      query: (params) => ({
-        url: "/ssl/all-payments",
+    getPaymentStatus: build.query({
+      query: (paymentId: string) => ({
+        url: `/payment/status/${paymentId}`,
         method: "GET",
-        params,
       }),
       providesTags: [tagTypes.payment],
+    }),
+    getAllPayments: build.query({
+      query: (params?: any) => ({
+        url: "/ssl/all-payments",
+        method: "GET",
+        params: {
+          page: params?.page || 1,
+          limit: params?.limit || 10,
+          ...params,
+        },
+      }),
+      providesTags: [tagTypes.payment],
+    }),
+    getPaymentHistory: build.query({
+      query: (userId: string) => ({
+        url: `/payment/history/${userId}`,
+        method: "GET",
+      }),
+      providesTags: [tagTypes.payment],
+    }),
+    cancelPayment: build.mutation({
+      query: (paymentId: string) => ({
+        url: `/payment/cancel/${paymentId}`,
+        method: "POST",
+      }),
+      invalidatesTags: [tagTypes.payment],
     }),
   }),
 });
@@ -33,7 +70,10 @@ const paymentApi = baseApi.injectEndpoints({
 export const {
   useInitialPaymentMutation,
   useValidPaymentMutation,
+  useGetPaymentStatusQuery,
   useGetAllPaymentsQuery,
+  useGetPaymentHistoryQuery,
+  useCancelPaymentMutation,
 } = paymentApi;
 
 export default paymentApi;

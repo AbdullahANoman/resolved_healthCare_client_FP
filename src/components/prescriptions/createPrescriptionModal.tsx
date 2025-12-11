@@ -61,11 +61,13 @@ const CreatePrescriptionModal: React.FC<CreatePrescriptionModalProps> = ({
 
       const result = await createPrescription(prescriptionData).unwrap();
 
-      if(result?.success){
+      console.log(result)
+
+      if(result?.id){
           toast.success(result?.message || "Prescription created successfully");
       }
 
-      if(!result?.success){
+      if(!result?.id){
         toast.error(result?.message || "Failed to create prescription. Please try again.");
       }
       
